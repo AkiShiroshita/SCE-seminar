@@ -1,0 +1,100 @@
+---
+title: "Advanced Data Wrangling"
+#subtitle: "RWD database"
+type: "meetup"
+author: "Akihiro Shiroshita"
+institute: "Vanderbilt University School of Medicine"
+date: "`r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    includes: 
+    after_body: "libs/typed.js"
+    lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      highlightLanguage: ["r"]
+      countIncrementalSlides: false
+      ratio: "16:9" #4:3
+      beforeInit: "macro.js"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>       
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(ggplot2)
+library(kableExtra)
+library(gt)
+library(xaringanExtra)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	fig.width = 7.252,
+	fig.height = 4,
+	dpi = 300
+)
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_duo(primary_color = "#1F4257",
+          secondary_color = "#F97B64",
+          base_font_size = "24px",
+          text_font_size = "28px",
+          table_row_border_color = "FFFFFF",
+          table_row_even_background_color = "FFFFFF",
+          colors = c(red = "#f34213",
+                     purple = "#3e2f5b",
+                     orange = "#F97B64",
+                     green = "#136f63",
+                     white = "#FFFFFF")
+)
+```
+
+```{r xaringan-extra, include=FALSE, warning=FALSE}
+xaringanExtra::use_tile_view() # press "O" button
+xaringanExtra::use_panelset()
+xaringanExtra::use_scribble()
+xaringanExtra::use_animate_css() #animate all silides: use_animate_all("slide_left")
+xaringanExtra::use_editable()
+xaringanExtra::use_webcam()
+xaringanExtra::use_clipboard()
+xaringanExtra::use_search(show_icon = TRUE)
+xaringanExtra::use_extra_styles(
+  hover_code_line = TRUE,         #<<
+  mute_unhighlighted_code = TRUE  #<<
+)
+xaringanExtra::use_tachyons()
+```
+
+class: right, middle    
+
+background-image: url(Yui.jpg) 
+background-size: contain    
+background-position: left  
+
+---
+## Extract 7-zip files  
+
+7-zip file manager
+
+---
+## Importing files    
+
+```
+read_file()
+guess_encoding()
+
+```
+---
+## Short-cuts
+
+Ctrl + S
