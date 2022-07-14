@@ -82,12 +82,40 @@ background-size: contain
 background-position: left  
 
 ---
+## This seminar  
+* Data manipulation of RWD database using R and R studio  
+* Contents: unzip files, data import, patient selection, 
+
+---
+## RWD database  
+
+* Patient data (summary data)  
+* EMR data (disease, drug, admission, and laboratory data)  
+* Claim data (disease and procedure data)  
+* DPC data (yoshiki1)  
+* Code list  
+
+---
+## Documents  
+* [様式1](https://www.mhlw.go.jp/file/06-Seisakujouhou-12400000-Hokenkyoku/0000175088.pdf)
+
+---
+## Local vs R studio cloud
+
+* Local: 
+* R studio cloud: high speed, not interfering with local, takes a lot of time to upload files
+* Template: "クラウドサービスを提供しているベンダーによるデータ利用は不可の契約となっている．"  
+
+---
 ## Extract 7-zip files  
 
-7-zip file manager
+Windows: [7-zip file manager](https://sevenzip.osdn.jp/)  
+Mac: 
 
 ---
 ## Importing files    
+
+* Useful shortcut: Ctrl + Space 
 
 ```
 read_file()
@@ -95,6 +123,12 @@ guess_encoding()
 
 ```
 ---
-## Short-cuts
+## Encoding  
+
+* Windows: cp323, shift-jis
 
 Ctrl + S
+
+---
+## C/C++    
+

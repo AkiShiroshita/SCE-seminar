@@ -154,4 +154,39 @@ df2 <- read_rds("output/df2.rds")
 
 df <- full_join(df1, df2, by = c("患者ID", "入院日"))　# match = 同一日入院
 
+select_dpc <- function(item_name, number){
+  data <- ef1 %>% 
+    filter(項目名 == item_name & 連番 == number) %>% 
+    pivot_wider(names_from = c(項目名, 連番),
+                values_from = データ) 
+  df <<- left_join(df, data, by = c("患者ID", "入院日"))
+  }
+  
+## CCI  
 
+cci <- ef1 %>%
+  filter(項目名 == "入院時併存症名に対するICD10コード") %>% 
+  mutate(id = str_c(患者ID, 入院日, sep = "_")) %>% 
+  rename(name = "項目名",
+         code = "データ") %>% 
+  select(id, code) %>% 
+  arrange(id) %>% 
+  as_tibble()
+
+charlson <- comorbidity::comorbidity(x = cci, id = "id", code = "code", map = "charlson_icd10_quan", assign0 = FALSE)
+charlson
+cci_score <- score(charlson, weights = "quan", assign0 = FALSE)
+
+cci_id <- cci %>% 
+  distinct(id, .keep_all=TRUE) %>% 
+  arrange(id)
+cci_df <- cbind(cci_id, cci_score) %>% 
+  select(-code) %>% 
+  separate(col = id,
+           into = c("id", "adm"),
+           sep = "-") %>% 
+  mutate(id = as.character(id),
+         adm = ymd(adm),
+         id = as.integer(id))
+
+dpc_ef1_data_selected <- left_join(dpc_ef1_data_selected, cci_df, by = c("id", "adm"))
