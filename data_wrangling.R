@@ -157,18 +157,18 @@ df <- full_join(df1, df2, by = c("患者ID", "入院日"))　# match = 同一日
 select_dpc <- function(item_name, number){
   data <- ef1 %>% 
     filter(項目名 == item_name & 連番 == number) %>% 
-    pivot_wider(names_from = c(項目名, 連番),
+    pivot_wider(names_from = c(`項目名`, `連番`),
                 values_from = データ) 
-  df <<- left_join(df, data, by = c("患者ID", "入院日"))
+  df <<- left_join(df, data, by = c("`患者ID`", "`入院日`"))
   }
   
 ## CCI  
 
 cci <- ef1 %>%
   filter(項目名 == "入院時併存症名に対するICD10コード") %>% 
-  mutate(id = str_c(患者ID, 入院日, sep = "_")) %>% 
-  rename(name = "項目名",
-         code = "データ") %>% 
+  mutate(id = str_c(`患者ID`, `入院日`, sep = "_")) %>% 
+  rename(name = `項目名`,
+         code = `データ`) %>% 
   select(id, code) %>% 
   arrange(id) %>% 
   as_tibble()
