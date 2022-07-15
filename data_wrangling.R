@@ -27,8 +27,6 @@ package.check <- lapply(packages, FUN = function(x){
 getwd()
 rm(list=ls())
 
-###H|dkS2F#h#Pi
-
 # Data import -------------------------------------------------------------
 
 ## patient data
@@ -154,39 +152,79 @@ df2 <- read_rds("output/df2.rds")
 
 df <- full_join(df1, df2, by = c("患者ID", "入院日"))　# match = 同一日入院
 
-select_dpc <- function(item_name, number){
+select_dpc <- function(code, payload, name){
   data <- ef1 %>% 
-    filter(項目名 == item_name & 連番 == number) %>% 
-    pivot_wider(names_from = c(`項目名`, `連番`),
-                values_from = データ) 
-  df <<- left_join(df, data, by = c("`患者ID`", "`入院日`"))
-  }
-  
+    arrange(`患者ID`, `入院日`) %>% 
+    select(`患者ID`, `入院日`, `コード`, `ペイロード番号`, `データ`) %>%  
+    filter(`コード` == code, `ペイロード番号` == payload) %>% 
+    distinct(`患者ID`, `入院日`, .keep_all=TRUE) %>% 
+    pivot_wider(names_from = c(`コード`, `ペイロード番号`),
+                values_from = `データ`,
+                values_fill = list(value = NA_character_)) 
+  data <- data %>% rename(!!name := colnames(data)[3])
+  df <<- left_join(df, data, by = c("患者ID", "入院日"))
+}
+
+select_dpc2 <- function(code, payload, serial, name){
+  data <- ef1 %>% 
+    arrange(`患者ID`, `入院日`) %>% 
+    select(`患者ID`, `入院日`, `コード`, `ペイロード番号`, `連番`, `データ`) %>%  
+    filter(`コード` == code, `ペイロード番号` == payload, `連番` == serial) %>% 
+    distinct(`患者ID`, `入院日`, .keep_all=TRUE) %>% 
+    pivot_wider(names_from = c(`コード`, `ペイロード番号`, `連番`),
+                values_from = `データ`,
+                values_fill = list(value = NA_character_)) 
+  data <- data %>% rename(!!name := colnames(data)[3])
+  df <<- left_join(df, data, by = c("患者ID", "入院日"))
+}
+
+select_dpc("A000010", "1", "birth_date")  
+select_dpc("A000010", "2", "sex")  
+select_dpc("A000030", "1", "disc_date")  
+select_dpc("A000030", "2", "disc_to")  
+select_dpc("A000030", "3", "disc_prognosis")  
+select_dpc("A000030", "4", "death24h")  
+
+select_dpc2("A006040", "2", "1", "com1")  
+select_dpc2("A006040", "2", "2", "com2")  
+select_dpc2("A006040", "2", "3", "com3")  
+select_dpc2("A006040", "2", "4", "com4")  
+select_dpc2("A006040", "2", "5", "com5")  
+select_dpc2("A006040", "2", "6", "com6")  
+select_dpc2("A006040", "2", "7", "com7")  
+select_dpc2("A006040", "2", "8", "com8")  
+select_dpc2("A006040", "2", "9", "com9")  
+select_dpc2("A006040", "2", "10", "com10") 
+
+select_dpc2("A006050", "2", "1", "subs1") 
+select_dpc2("A006050", "2", "2", "subs2") 
+select_dpc2("A006050", "2", "3", "subs3") 
+select_dpc2("A006050", "2", "4", "subs4") 
+select_dpc2("A006050", "2", "5", "subs5") 
+
+select_dpc("ADL0010", "2", "adm_adl") 
+select_dpc("ADL0020", "2", "disc_adl") 
+select_dpc("JCS0010", "2", "adm_jcs") 
+select_dpc("JCS0020", "2", "disc_jcs") 
+select_dpc("M040020", "2", "severity_score") 
+select_dpc("M040020", "3", "cap_hap") 
+
 ## CCI  
 
-cci <- ef1 %>%
-  filter(項目名 == "入院時併存症名に対するICD10コード") %>% 
-  mutate(id = str_c(`患者ID`, `入院日`, sep = "_")) %>% 
-  rename(name = `項目名`,
-         code = `データ`) %>% 
-  select(id, code) %>% 
-  arrange(id) %>% 
-  as_tibble()
+df <- df %>% 
+  mutate(dummy_id = row_number())
 
-charlson <- comorbidity::comorbidity(x = cci, id = "id", code = "code", map = "charlson_icd10_quan", assign0 = FALSE)
+cci <- df %>% 
+  select(`患者ID`, dummy_id, `入院日`, starts_with("com")) %>% 
+  pivot_longer(
+  cols = starts_with("com"),
+  names_to = "item",
+  values_to = "value"
+)
+
+charlson <- comorbidity::comorbidity(x = cci, id = "dummy_id", code = "value", map = "charlson_icd10_quan", assign0 = FALSE)
 charlson
 cci_score <- score(charlson, weights = "quan", assign0 = FALSE)
 
-cci_id <- cci %>% 
-  distinct(id, .keep_all=TRUE) %>% 
-  arrange(id)
-cci_df <- cbind(cci_id, cci_score) %>% 
-  select(-code) %>% 
-  separate(col = id,
-           into = c("id", "adm"),
-           sep = "-") %>% 
-  mutate(id = as.character(id),
-         adm = ymd(adm),
-         id = as.integer(id))
+df <- cbind(df, cci_score) 
 
-dpc_ef1_data_selected <- left_join(dpc_ef1_data_selected, cci_df, by = c("id", "adm"))
