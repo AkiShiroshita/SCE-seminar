@@ -90,7 +90,7 @@ drug_code %>% glimpse()
 
 disease_code <- read_csv("input/2021102512_103_Disease_codelist_2021_002_SCE.csv.gz",
                          locale = locale(encoding = "cp932"))
-drug_code %>% glimpse()
+disease_code %>% glimpse()
 
 ## procedure code
 
@@ -315,39 +315,60 @@ drug_list %>% write_rds("output/drug_list.rds", compress = "gz")
 
 drug_list <- read_rds("output/drug_list.rds")
 
-drug_memo <- read_csv("memo/drug_memo.csv", 
-                      locale = locale(encoding = "SHIFT-JIS")) %>% 
-  select(1:2)
-
-atc <- drug_memo %>% select(2) %>% pull() %>% unique()
-
-df <- df %>% 
-  arrange(`患者ID`, `入院日`) %>%
-  mutate(p_interv = interval(ymd(`入院日`), ymd(`disc_date`))) 
-  
-demo <- map(atc, ~{
-   selected <- drug_list %>% 
-     filter(str_detect(`WHO-ATCコード`, .)) %>% 
-     arrange(`患者ID`, `開始日`) %>% 
-     mutate(h_interv = interval(ymd(`開始日`), ymd(`終了日`))) %>% 
-     select(`患者ID`, `開始日`, `終了日`, h_interv)
-   
-   df <- df %>% 
-     left_join(selected, by = "患者ID") %>% 
-     mutate(overlap = int_overlaps(p_interv, h_interv)) %>% 
-     filter(overlap == "TRUE") %>% 
-     mutate(. = 1) %>% 
-     select(`患者ID`, `入院日`, ., `開始日`, `終了日`) %>% 
-     mutate(name = 1) %>% 
-     distinct(`患者ID`, `入院日`,.keep_all=TRUE) 
-})
-
-###  
 abx_list <- c("J01A", "J01B", "J01C", "J01D", "J01E", "J01F", "J01G", "J01M", "J01R", "J01X")
 abx <- drug_list %>% 
   filter(str_detect(`WHO-ATCコード`, paste(abx_list, collapse = "|")))
 
+steroid <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "H02"))
 
+tetra <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01A"))
+
+anphe <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01B"))
+
+betal <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01C"))
+
+other_beta <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01D"))
+
+st <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01E"))
+
+macro <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01F"))
+
+amino <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01G"))
+
+quino <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01M"))
+
+combi <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01R"))
+
+others <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "J01X"))
+
+antac <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "A02"))
+
+inhaler <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "R03"))
+
+vaso <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "C01C"))
+
+diure <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "C02"))
+
+dm_drug <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "A01"))
+
+immuno <- drug_list %>% 
+  filter(str_detect(`WHO-ATCコード`, "L04A"))
 
 drug_select <- function(.data1, .data2, name1, name2, name3){
   .data1 <- .data1 %>%
@@ -376,54 +397,177 @@ drug_select <- function(.data1, .data2, name1, name2, name3){
 
 drug_select(df, abx, "abx", "abx_start", "abx_end")
 drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
-drug_select(df, steroid, "steroid", "steroid_start", "steroid_end")
+drug_select(df, tetra, "tetra", "tetra_start", "tetra_end")
+drug_select(df, anphe, "anphe", "anphe_start", "anphe_end")
+drug_select(df, betal, "betal", "betal_start", "betal_end")
+drug_select(df, other_beta, "other_beta", "other_beta_start", "other_beta_end")
+drug_select(df, st, "st", "st_start", "st_end")
+drug_select(df, macro, "macro", "macro_start", "macro_end")
+drug_select(df, amino, "amino", "amino_start", "amino_end")
+drug_select(df, quino, "quino", "quino_start", "quino_end")
+drug_select(df, combi, "combi", "combi_start", "combi_end")
+drug_select(df, others, "others", "others_start", "others_end")
+drug_select(df, antac, "antac", "antac_start", "antac_end")
+drug_select(df, inhaler, "inhaler", "inhaler_start", "inhaler_end")
+drug_select(df, vaso, "vaso", "vaso_start", "vaso_end")
+drug_select(df, diure, "diure", "diure_start", "diure_end")
+drug_select(df, dm_drug, "dm_drug", "dm_drug_start", "dm_drug_end")
+drug_select(df, immuno, "immuno", "immuno_start", "immuno_end")
 
-df %>% glimpse()
+df <- df %>% 
+  mutate(emp_abx = if_else((ymd(`入院日`) == ymd(abx_start) | ymd(`入院日`) == ymd(abx+1)), 1, 0),
+         emp_steroid = if_else((ymd(`入院日`) == ymd(steroid_start) | ymd(`入院日`) == ymd(steroid+1)), 1, 0)) %>% 
+  mutate(across(abx_start:emp_steroid, ~ replace_na(.x, 0)))
 
-
-###
-p <- map(1:length(id_unique), ~{
-  d <- .data %>% 
-    filter(`患者ID` == id_unique[.]) %>% 
-    
-  
-})
-
-df %>% filter(`患者ID` == "10017")
-
-.data <- .data %>%
-  group_by(`患者ID`) %>% 
-  
-  
-  left_join(.data, by = c("入院日" == "開始日"))
-
-near_combine <- function(.data1, .data2){
-  .data1 <- .data1 %>% 
-    mutate(`入院日` = ymd(`入院日`)) %>% 
-    arrange(`患者ID`, `入院日`)
-  .data2 <- .data2 %>% 
-    mutate(`開始日` = ymd(`開始日`),
-           `終了日` = ymd(`終了日`)) %>% 
-    arrange(`患者ID`, `開始日`)
-  
-  indx <- neardate(.data1$`患者ID`, .data2$`患者ID`, .data1$`入院日`, .data2$`開始日`, 
-                    best="after")
-  d <- .data2[indx, ] %>% 
-    drop_na(`開始日`)
-  
-}
+df %>% write_rds("output/df_ef1_drug.rds", compress = "gz")
 
 # Laboratory data ---------------------------------------------------------
 
+df <- read_rds("output/df_ef1_drug.rds")
+emr_laboratory_data %>% glimpse()
 
+lab_names <- emr_laboratory_data %>% select(`検査名`) %>% pull(1) %>% unique()
+
+df <- df %>% 
+  mutate(`入院日` = ymd(`入院日`)) %>% 
+  arrange(`患者ID`, `入院日`)
+
+emr_laboratory_data <- emr_laboratory_data %>% 
+  mutate(`検査日` = ymd(`検査日`)) %>% 
+  arrange(`患者ID`, `検査日`)
+
+lab_combine <- function(name, newname){
+  .data2 <- emr_laboratory_data %>% 
+    filter(`検査名` == name)
+  
+  indx1 <- neardate(df$`患者ID`, .data2$`患者ID`, df$`入院日`, .data2$`検査日`, 
+                   best="after")
+  indx1 <- ifelse((.data2$`検査日`[indx1] - df$`入院日`) > 2, NA, indx1)
+  indx2 <- neardate(df$`患者ID`, .data2$`患者ID`, df$`入院日`, .data2$`検査日`, 
+                    best="prior")
+  indx2 <- ifelse((df$`入院日` - .data2$`検査日`[indx2]) > 2, NA, indx2)
+  indx3 <- ifelse(is.na(indx1), indx2, # none after, take before
+         ifelse(is.na(indx2), indx1, #none before
+                ifelse(abs(.data2$`検査日`[indx2]- df$`入院日`) <
+                         abs(.data2$`検査日`[indx1]- df$`入院日`), indx2, indx1)))
+  df <<- df %>% cbind(.data2[indx3, "結果"]) %>% rename(!!newname := "結果")
+}
+
+lab_combine("白血球数;WBC", "wbc")
+lab_combine("アルブミン;alb", "alb1")
+lab_combine("尿素窒素;BUN", "bun")
+lab_combine("C反応性タンパク;CRP", "crp1")
+lab_combine("白血球分画:好酸球;Eosino", "eo")
+lab_combine("白血球分画:好中球;Neutr", "neut")
+lab_combine("白血球分画:単球;Mono", "mono")
+lab_combine("白血球分画:リンパ球;Lymp", "lym")
+lab_combine("白血球分画:好塩基球;Baso", "baso")
+lab_combine("蛋白分画 - アルブミン分画", "alb2")
+lab_combine("C反応性タンパク;高感度CRP", "crp2")
+lab_combine("尿素窒素;BUN(透析前)", "bun2")
+lab_combine("白血球数;WBC(透析前)", "wbc2")
+
+df <- df %>% 
+  mutate(alb = if_else(is.na(alb1), alb2, alb1),
+         crp = if_else(is.na(crp1), crp2, crp1))
+
+df %>% write_rds("output/df_ef1_drug_lab.rds", compress = "gz")
+
+# Procedure ---------------------------------------------------------------
+
+df <- read_rds("output/df_ef1_drug.rds")
+claim_procedure_data %>% glimpse()
+procedure_code %>% glimpse()
+
+pcode <- procedure_code %>% 
+  select(`診療点数早見表区分コード`, `診療行為コード`)
+claim_procedure_data <- claim_procedure_data %>% 
+  left_join(pcode, by = c("診療行為コード"))
+
+id_unique <- df %>% select(`患者ID`) %>% pull() %>% unique()
+claim_procedure_data_filtered <- claim_procedure_data %>% 
+  filter(`患者ID` %in% id_unique)
+
+procedure_select <- function(.data){
+  c <- .data %>% 
+    distinct(`対象日`, .keep_all=TRUE) %>% 
+    mutate(diff = `対象日` - lag(`対象日`)) %>% 
+    replace_na(list(diff=1)) %>% 
+    mutate(procid = cumsum(diff > 1)) %>% 
+    group_by(procid) %>% 
+    mutate(start = head(`対象日`, 1),
+           end = tail(`対象日`, 1)
+           ) %>% 
+    slice(1)
+}
+
+claim_procedure_data_filtered <- claim_procedure_data_filtered %>% 
+  group_by(`患者ID`, `診療点数早見表区分コード`) %>% 
+  nest() %>% 
+  mutate(res = map(data, procedure_select)) %>% 
+  unnest(res) %>%
+  select(-procid, -data) %>% 
+  ungroup()
+
+claim_procedure_data_filtered %>% write_rds("output/procedure_list.rds", compress = "gz")
+
+procedure_list <- read_rds("output/procedure_list.rds")
+
+intubation <- procedure_list %>% 
+  filter(str_detect(`診療点数早見表区分コード`, "J044"))
+
+oxy <- procedure_list %>% 
+  filter(str_detect(`診療点数早見表区分コード`, "J024"))
+
+mecha_intu <- procedure_list %>% 
+  filter(str_detect(`診療点数早見表区分コード`, "J045"))
+
+dialysis <- procedure_list %>% 
+  filter(str_detect(`診療点数早見表区分コード`, "J038"))
+
+procedure_select <- function(.data1, .data2, name1, name2, name3){
+  .data1 <- .data1 %>%
+    arrange(`患者ID`, `入院日`) %>% 
+    mutate(h_interv = interval(ymd(`入院日`), ymd(`disc_date`))) %>% 
+    select(`患者ID`, `入院日`, h_interv) 
+  
+  .data2 <- .data2 %>% 
+    arrange(`患者ID`, `start`) %>%
+    mutate(p_interv = interval(ymd(`start`), ymd(`end`))) %>% 
+    select(`患者ID`, `診療点数早見表区分コード`, `診療行為コード`, start, end, p_interv)
+  
+  comb <- .data1 %>% 
+    left_join(.data2, by = "患者ID") %>% 
+    mutate(overlap = int_overlaps(p_interv, h_interv)) %>% 
+    filter(overlap == "TRUE") %>% 
+    select(`患者ID`, `入院日`, `start`, `end`) %>% 
+    mutate(name = 1) %>% 
+    distinct(`患者ID`, `入院日`,.keep_all=TRUE) %>% 
+    rename(!!name1 := "name",
+           !!name2 := "start",
+           !!name3 := "end")
+  
+  df <<- left_join(df, comb, by = c("患者ID", "入院日")) 
+}
+
+procedure_select(df, intubation, "intubation", "intubation_start", "intubation_end")
+procedure_select(df, oxy, "oxy", "oxy_start", "oxy_end")
+procedure_select(df, mecha_intu, "mecha_intu", "mecha_intu_start", "mecha_intu_end")
+procedure_select(df, dialysis, "dialysis", "dialysis_start", "dialysis_end")
+
+
+df <- df %>% 
+  mutate(emp_oxy = if_else(ymd(`入院日`) == ymd(oxy_start), 1, 0)) %>% 
+  mutate(across(intubation_start:emp_oxy, ~ replace_na(.x, 0)))
+
+df %>% write_rds("output/df_ef1_drug_proc.rds", compress = "gz")
+
+
+# Baseline ----------------------------------------------------------------
+
+claim_procedure_data_filtered %>% 
+  group_by(`患者ID`, `診療点数早見表区分コード`) %>% 
+  nest() %>% 
+  mutate(head = map(data, ~{head(.$`対象日`, 1)}),
+         tail = map(data, ~{tail(.$`対象日`, 1)})) %>% 
+  unnest(head, tail)
