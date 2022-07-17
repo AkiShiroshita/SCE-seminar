@@ -355,9 +355,6 @@ others <- drug_list %>%
 antac <- drug_list %>% 
   filter(str_detect(`WHO-ATCコード`, "A02"))
 
-inhaler <- drug_list %>% 
-  filter(str_detect(`WHO-ATCコード`, "R03"))
-
 vaso <- drug_list %>% 
   filter(str_detect(`WHO-ATCコード`, "C01C"))
 
@@ -366,9 +363,6 @@ diure <- drug_list %>%
 
 dm_drug <- drug_list %>% 
   filter(str_detect(`WHO-ATCコード`, "A01"))
-
-immuno <- drug_list %>% 
-  filter(str_detect(`WHO-ATCコード`, "L04A"))
 
 drug_select <- function(.data1, .data2, name1, name2, name3){
   .data1 <- .data1 %>%
@@ -408,15 +402,22 @@ drug_select(df, quino, "quino", "quino_start", "quino_end")
 drug_select(df, combi, "combi", "combi_start", "combi_end")
 drug_select(df, others, "others", "others_start", "others_end")
 drug_select(df, antac, "antac", "antac_start", "antac_end")
-drug_select(df, inhaler, "inhaler", "inhaler_start", "inhaler_end")
 drug_select(df, vaso, "vaso", "vaso_start", "vaso_end")
 drug_select(df, diure, "diure", "diure_start", "diure_end")
 drug_select(df, dm_drug, "dm_drug", "dm_drug_start", "dm_drug_end")
-drug_select(df, immuno, "immuno", "immuno_start", "immuno_end")
 
 df <- df %>% 
-  mutate(emp_abx = if_else((ymd(`入院日`) == ymd(abx_start) | ymd(`入院日`) == ymd(abx+1)), 1, 0),
-         emp_steroid = if_else((ymd(`入院日`) == ymd(steroid_start) | ymd(`入院日`) == ymd(steroid+1)), 1, 0)) %>% 
+  mutate(emp_abx = if_else((ymd(`入院日`) == ymd(abx_start) | ymd(`入院日`) == ymd(abx_start+1)), 1, 0),
+         emp_tetra = if_else((ymd(`入院日`) == ymd(tetra_start) | ymd(`入院日`) == ymd(tetra_start+1)), 1, 0),
+         emp_anphe = if_else((ymd(`入院日`) == ymd(anphe_start) | ymd(`入院日`) == ymd(anphe_start+1)), 1, 0),
+         emp_betal = if_else((ymd(`入院日`) == ymd(betal_start) | ymd(`入院日`) == ymd(betal_start+1)), 1, 0),
+         emp_other_beta = if_else((ymd(`入院日`) == ymd(other_beta_start) | ymd(`入院日`) == ymd(other_beta_start+1)), 1, 0),
+         emp_st = if_else((ymd(`入院日`) == ymd(st_start) | ymd(`入院日`) == ymd(st_start+1)), 1, 0),
+         emp_macro = if_else((ymd(`入院日`) == ymd(macro_start) | ymd(`入院日`) == ymd(macro_start+1)), 1, 0),
+         emp_quino = if_else((ymd(`入院日`) == ymd(quino_start) | ymd(`入院日`) == ymd(quino_start+1)), 1, 0),
+         emp_combi = if_else((ymd(`入院日`) == ymd(combi_start) | ymd(`入院日`) == ymd(combi_start+1)), 1, 0),
+         emp_others = if_else((ymd(`入院日`) == ymd(others_start) | ymd(`入院日`) == ymd(others_start+1)), 1, 0),
+         emp_steroid = if_else((ymd(`入院日`) == ymd(steroid_start) | ymd(`入院日`) == ymd(steroid_start+1)), 1, 0)) %>% 
   mutate(across(abx_start:emp_steroid, ~ replace_na(.x, 0)))
 
 df %>% write_rds("output/df_ef1_drug.rds", compress = "gz")
@@ -565,9 +566,93 @@ df %>% write_rds("output/df_ef1_drug_proc.rds", compress = "gz")
 
 # Baseline ----------------------------------------------------------------
 
-claim_procedure_data_filtered %>% 
-  group_by(`患者ID`, `診療点数早見表区分コード`) %>% 
-  nest() %>% 
-  mutate(head = map(data, ~{head(.$`対象日`, 1)}),
-         tail = map(data, ~{tail(.$`対象日`, 1)})) %>% 
-  unnest(head, tail)
+df <- read_rds("output/df_ef1_drug_proc.rds")
+
+### baseline drug
+
+drug_list <- read_rds("output/drug_list.rds")
+
+drug_baseline <- function(name, newname){
+  .data2 <- drug_list %>% 
+    filter(str_detect(`WHO-ATCコード`, !!name)) %>% 
+    group_by(`患者ID`) %>% 
+    nest() %>% 
+    mutate(head = map(data, ~{min(.$`開始日`)}),
+           tail = map(data, ~{max(.$`終了日`)})) %>% 
+    unnest(head, tail) %>% 
+    select(-data) %>% 
+    ungroup() 
+  df <- df %>%  
+    left_join(.data2, by = "患者ID")
+  df <- df %>% 
+    mutate(toss_name = if_else((ymd(`入院日`) < ymd(head) + 30) & (ymd(head) < ymd(`入院日`)), "1", "0")) %>% 
+    select(-head, -tail) 
+  df <<- df %>% left_join(.data2, by = "患者ID") %>% rename(!!newname := "toss_name") %>% select(-head, -tail)
+}
+
+drug_baseline("H02", "base_steroid")
+drug_baseline("R03", "base_inhaler")
+drug_baseline("L04A", "base_immuno")
+drug_baseline("A01", "base_dm_drug")
+
+### baseline procedure
+
+procedure_list <- read_rds("output/procedure_list.rds")
+
+procedure_baseline <- function(name, newname){
+  .data2 <- procedure_list %>% 
+    filter(str_detect(`診療点数早見表区分コード`, !!name)) %>% 
+    group_by(`患者ID`) %>% 
+    nest() %>% 
+    mutate(head = map(data, ~{min(.$start)}),
+           tail = map(data, ~{max(.$end)})) %>% 
+    unnest(head, tail) %>% 
+    select(-data) %>% 
+    ungroup() 
+  df <- df %>%  
+    left_join(.data2, by = "患者ID")
+  df <- df %>% 
+    mutate(toss_name = if_else((ymd(`入院日`) < ymd(head) + 30) & (ymd(head) < ymd(`入院日`)), "1", "0")) %>% 
+    select(-head, -tail) 
+  df <<- df %>% left_join(.data2, by = "患者ID") %>% rename(!!newname := "toss_name") %>% select(-head, -tail)
+}
+
+procedure_baseline("J038", "base_dialysis")
+
+df <- df %>% 
+  mutate(across(base_steroid:base_dialysis, ~ as.numeric(.x))) %>% 
+  mutate(across(base_steroid:base_dialysis, ~ replace_na(.x, 0)))
+
+df %>% write_rds("output/df_ef1_drug_proc_base.rds", compress = "gz")
+
+# Last cleaning ----------------------------------------------------------------
+
+df <- read_rds("output/df_ef1_drug_proc_base.rds")
+df %>% glimpse()
+
+df <- df %>% 
+  rename(id = `患者ID`,
+         adm_date = `入院日`,
+         last_follow = `観察期間終了日(EMR)`,
+         last_death = `死亡の有無`,
+         death_date = `死亡日`) %>% 
+  select(id, age, sex, adm_adl, cap_hap, spo2, ams, sbp, immunodef, crp, dev_place,
+         abx, emp_abx, steroid, emp_steroid, base_steroid, tetra, anphe, betal, other_beta, st, macro, amino, quino, combi,
+         antac, base_inhaler, vaso, diure, dm_drug, base_dm_drug, base_immuno, 
+         intubation, oxy, emp_oxy, mecha_intu, dialysis,
+         los, adm_date, last_follow, disc_date, death_date, disc_prognosis, death24h, last_death) %>% 
+  mutate(sex = factor(sex,
+                      levels = c("1", "2"),
+                      labels = c("Male", "Female")),
+         emp_steroid = factor(emp_steroid,
+                              levels = c("0", "1"),
+                              labels = c("Steroid group", "Non-steroid group")),
+         inhosp_death = if_else((disc_prognosis == 6 | disc_prognosis == 7), 1, 0),
+         transfer24h = if_else(los == 0, 1, 0)) %>% 
+  mutate(across(cap_hap:dev_place, ~ as.numeric(.x))) %>% 
+  mutate(across(disc_prognosis:death24h, ~ as.numeric(.x))) %>% 
+  mutate(across(adm_date:death_date, ~ ymd(.x)))
+         
+df %>% write_rds("output/df_ef1_drug_proc_base_cleaned.rds", compress = "gz")
+
+
