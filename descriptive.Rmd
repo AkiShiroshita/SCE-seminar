@@ -1,0 +1,192 @@
+---
+output: 
+    stevetemplates::statement:
+    latex_engine: pdflatex
+geometry: margin=1in
+
+title: "RWD pneumonic COPD exacerbation"
+author: Akihiro Shiroshita
+affiliation: Division of Epidemiology, Department of Medicine, Vanderbilt University School of Medicine
+email: "akihiro.shiroshita@vanderbilt.edu"
+
+fontfamily: cochineal
+fontsize: 11pt
+---
+
+```{r set-up, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message = FALSE,
+                      fig.pos="t", fig.height=4, out.extra="")
+
+packages = c("devtools",
+             "usethis",
+             "here",
+             "readr",
+             "data.table",
+             "readxl",
+             "tidyverse",
+             "R.utils",
+             "tidylog",
+             "lubridate",
+             "comorbidity",
+             "psych",
+             "ggplot2",
+             "ggplotgui",
+             "ggthemes",
+             "arsenal",
+             "survival",
+             "scales",
+             "texreg",
+             "kableExtra")
+package.check <- lapply(packages, FUN = function(x){
+  if (!require(x, character.only = TRUE)){
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+getwd()
+rm(list=ls())
+
+df <- read_rds("output/df_ef1_drug_proc_base_cleaned.rds")
+```
+
+# Patient selection flow      
+
+```{r}
+df %>% summarise(n_observation = n(),
+                 n_patients = length(unique(id)),
+                 n_death = sum(inhosp_death == 1),
+                 n_death24h = sum(death24h == 1),
+                 n_loss24h = sum(transfer24h == 1),
+                 n_death24h_transfer24h = sum(death24h == 1 & transfer24h == 1),
+                 n_daily_steroid = sum(base_steroid == 1),
+                 n_under_40 = sum(age < 40)) %>% 
+  mutate_all(~{format(., nsmall = 0, digits = 0)}) %>% 
+  pivot_longer(everything()) %>% 
+  rename(` ` = name, `Number` = value)
+```
+### Exclude patients  
+
+```{r}
+df <- df %>% 
+  filter(death24h != 1 & transfer24h != 1 & base_steroid != 1)
+df %>% write_rds("output/analysis_data.rds", compress = "gz")
+```
+
+
+### Treatment groups
+```{r}
+df %>% group_by(emp_steroid) %>% 
+  summarise(n_observation = n(),
+            n_patients = length(unique(id)),
+            n_death = sum(inhosp_death == 1)) %>% 
+  mutate_at(vars(-emp_steroid), ~{format(., nsmall = 0, digits = 0)}) %>% 
+  pivot_longer(cols = c(-emp_steroid),
+               names_to = "name",
+               values_to = "value") %>% 
+  pivot_wider(id_cols = name,
+              names_from = emp_steroid,
+              values_from = value) %>% 
+  rename(` ` = name)
+```
+
+# Overall characteristics  
+
+
+```{r}
+labellist = list(age = "Age",
+                 sex = "Sex",
+                 adm_adl = "Activity of daily living",
+                 cci = "Charlson Comobidity Score",
+                 spo2 = "Low ogygen saturation",
+                 ams = "Mental status",
+                 sbp = "Systolic blood pressure",
+                 immunodef = "Immunodeficiency",
+                 dev_place = "Community-acquired or hospital acquired",
+                 emp_abx = "Empirical antibiotics",
+                 emp_steroid = "Empirical steroid",
+                 emp_tetra = "TETRACYCLINES",
+                 emp_anphe = "AMPHENICOLS",
+                 emp_betal = "BETA-LACTAM ANTIBACTERIALS, PENICILLINS",
+                 emp_other_beta = "OTHER BETA-LACTAM ANTIBACTERIALS",
+                 emp_st = "SULFONAMIDES AND TRIMETHOPRIM",
+                 emp_macro = "MACROLIDES, LINCOSAMIDES AND STREPTOGRAMINS",
+                 emp_amino = "AMINOGLYCOSIDE ANTIBACTERIALS",
+                 emp_quino = "QUINOLONE ANTIBACTERIALS",
+                 emp_combi = "COMBINATIONS OF ANTIBACTERIALS",
+                 emp_others = "OTHER ANTIBACTERIALS",
+                 vaso = "Vasopressors",
+                 diure = "Diuretics",
+                 intubation = "Tracheal intubation",
+                 emp_oxy = "Oxygen use on admission",
+                 base_dialysis = "Dialysis",
+                 inhosp_death = "In-hospital mortarity",
+                 death30d = "30-day mortality"
+                 )
+labelstatlist <- list(meansd = "Mean(SD)",
+                      range = "Range")
+table1 <- tableby(
+  ~ age + sex + adm_adl + cci + spo2 + ams + sbp + immunodef + dev_place +
+    emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
+    emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
+    vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,
+  data = df
+)
+
+table_control <- tableby.control(
+  labelTranslations = labellist,
+  stats.labels = labelstatlist,
+  digits = 0,
+  digits.pct =0,
+  test = FALSE,
+  total = FALSE
+)
+
+table1 <- summary(table1,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+table1
+```
+
+# Characteristics by exposure  
+```{r}
+table2 <- tableby(
+  emp_steroid ~ age + sex + adm_adl + cci + spo2 + ams + sbp + immunodef + dev_place +
+    emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
+    emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
+    vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,
+  data = df
+)
+
+table2 <- summary(table2,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+
+table_control <- tableby.control(
+  labelTranslations = labellist,
+  stats.labels = labelstatlist,
+  digits = 0,
+  digits.pct =0,
+  test = FALSE,
+  total = TRUE
+)
+
+table3 <- summary(table2,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+table3 %>% write.csv("table1.csv")
+```
+
+
+

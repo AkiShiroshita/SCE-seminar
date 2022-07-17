@@ -1,0 +1,166 @@
+---
+output: 
+    stevetemplates::statement:
+    latex_engine: pdflatex
+geometry: margin=1in
+
+title: "RWD pneumonic COPD exacerbation"
+author: Akihiro Shiroshita
+affiliation: Division of Epidemiology, Department of Medicine, Vanderbilt University School of Medicine
+email: "akihiro.shiroshita@vanderbilt.edu"
+
+fontfamily: cochineal
+fontsize: 11pt
+---
+
+```{r set-up, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message = FALSE,
+                      fig.pos="t", fig.height=4, out.extra="")
+
+packages = c("devtools",
+             "usethis",
+             "here",
+             "readr",
+             "data.table",
+             "readxl",
+             "tidyverse",
+             "R.utils",
+             "tidylog",
+             "lubridate",
+             "comorbidity",
+             "psych",
+             "ggplot2",
+             "ggplotgui",
+             "ggthemes",
+             "arsenal",
+             "survival",
+             "scales",
+             "texreg",
+             "kableExtra",
+             "survminer",
+             "matchit",
+             "boot")
+package.check <- lapply(packages, FUN = function(x){
+  if (!require(x, character.only = TRUE)){
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+getwd()
+rm(list=ls())
+
+df <- read_rds("output/analysis_data.rds")
+
+df_cc <- df %>% 
+  select(age, sex, adm_adl, cci, spo2, ams, sbp, immunodef, dev_place, emp_abx,
+         base_dialysis, inhospital_death, los, emp_steroid) %>% 
+  drop_na()
+```
+
+# Complete case analysis  
+
+### IPTW using entropy balancing  
+
+Developed by Hainmueller et al.
+
+```{r}
+trt_form <- "emp_steroid ~ age + sex + cci + spo2 + ams + sbp + immunodef + dev_place +
+             emp_abx + base_dialysis")
+
+eb.out <- weithit(as.formula(trt_form),
+                  data = df_cc,
+                  method = "ebal",
+                  moments = 3,
+                  estimand = "ATE")
+```
+
+### Balance check  
+
+```{r}
+eb.out
+```
+
+```{r}
+plot(eb.out, type = "jitter", interactive = FALSE)
+```
+
+```{r}
+love.plot(eb.out,
+          binary = "std",
+          continuous = "std",
+          abs = TRUE,
+          stats = c("m", "ks"),
+          sd.denom = "treat",
+          line = TRUE,
+          var.order = "adj",
+          theresholds = c(.10, .05))
+```
+
+```{r}
+bal.plot(eb.out, "medu", type = c("ecdf"))
+```
+
+```{r}
+bal.plot(eb.out,
+         var.name = "prop.score",
+         which = "both",
+         type = "histogram",
+         mirror = TRUE)
+
+```
+
+### Doubly 
+
+```{r}
+out_form <- "surb_obj ~ emp_steroid +  age + sex + cci + spo2 + ams + sbp + immunodef + dev_place +
+             emp_abx + base_dialysis"
+
+```
+
+### Weighted cox regression  
+```{r}
+
+surv_obj <- Surv(df_cc$los, df_cc$inhosp_death)
+fit_cc <- survfit(surv_obj ~ emp_steroid, df_cc)
+```
+
+```{r}
+survdiff(surv_obj ~ emp_steroid, data=df_cc)
+```
+
+```{r}
+summary(tableby(emp_steroid ~ Surv_obj, inhos_death), data=df_cc))
+```
+
+```{r}
+ggsurvplot(fit_cc, censor = TRUE, conf.int = TRUE, risktable = TRUE)
+```
+
+```{r}
+fit_cc_cox <- coxph(outform, data = df_cc)
+summary(fit_cc_cox)
+```
+
+### Bootstrap resampling  
+
+```{r}
+est_fun <- function(data, index){
+  out <- weithit(as.formula(trt_form),
+                  data = df_cc,
+                  method = "ebal",
+                  moments = 3,
+                  estimand = "ATE")
+  fit_cc <- 
+  return()
+}
+
+boot_out <- boot(est_fun, data = d, R = 1000)
+
+boot_out
+```
+
+```{r}
+boot.ci(boot_out, type = "perc")
+```
