@@ -62,7 +62,7 @@ df %>% summarise(n_observation = n(),
                  n_death24h_transfer24h = sum(death24h == 1 & transfer24h == 1),
                  n_daily_steroid = sum(base_steroid == 1),
                  n_under_40 = sum(age < 40)) %>% 
-  mutate_all(~{format(., nsmall = 0, digits = 0)}) %>% 
+  #mutate_all(~{format(., nsmall = 0, digits = 0)}) %>% 
   pivot_longer(everything()) %>% 
   rename(` ` = name, `Number` = value)
 ```
@@ -81,7 +81,7 @@ df %>% group_by(emp_steroid) %>%
   summarise(n_observation = n(),
             n_patients = length(unique(id)),
             n_death = sum(inhosp_death == 1)) %>% 
-  mutate_at(vars(-emp_steroid), ~{format(., nsmall = 0, digits = 0)}) %>% 
+  #mutate_at(vars(-emp_steroid), ~{format(., nsmall = 0, digits = 0)}) %>% 
   pivot_longer(cols = c(-emp_steroid),
                names_to = "name",
                values_to = "value") %>% 
@@ -127,7 +127,7 @@ labellist = list(age = "Age",
 labelstatlist <- list(meansd = "Mean(SD)",
                       range = "Range")
 table1 <- tableby(
-  ~ age + sex + adm_adl + cci + spo2 + ams + sbp + immunodef + dev_place +
+  ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
     emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
     emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
     vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,
@@ -148,13 +148,16 @@ table1 <- summary(table1,
                  control = table_control,
                  digits = 0,
                  digits.pct =0)
+```
+
+```{r results="asis"}
 table1
 ```
 
 # Characteristics by exposure  
 ```{r}
 table2 <- tableby(
-  emp_steroid ~ age + sex + adm_adl + cci + spo2 + ams + sbp + immunodef + dev_place +
+  emp_steroid ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
     emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
     emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
     vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,

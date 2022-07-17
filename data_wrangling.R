@@ -83,7 +83,7 @@ ef1 %>% glimpse()
 ## drug code
 
 drug_code <- read_csv("input/2021102512_101_Drug_codelist_2021_002_SCE.csv.gz",
-                 locale = locale(encoding = "cp932"))
+                      locale = locale(encoding = "cp932"))
 drug_code %>% glimpse()
 
 ## disease code
@@ -107,17 +107,17 @@ ef1 %>% colnames()
 
 df1 <- ef1 %>% 
   filter((str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J12")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J13")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J14")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J15")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J16")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J18")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J69")) |
-         (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"P23"))) 
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J13")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J14")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J15")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J16")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J18")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J69")) |
+           (str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"P23"))) 
 
 df1_comfil <- ef1 %>%
   filter((str_detect(ef1$項目名,"入院時併存症名に対するICD10コード") & str_detect(ef1$データ,"J441")) |
-         (str_detect(ef1$項目名,"入院時併存症名に対するICD10コード") & str_detect(ef1$データ,"J449")))
+           (str_detect(ef1$項目名,"入院時併存症名に対するICD10コード") & str_detect(ef1$データ,"J449")))
 
 df1_after_comfil <- inner_join(df1, df1_comfil, by = c("患者ID", "入院日")) %>% 
   select(患者ID, 入院日) %>% 
@@ -129,7 +129,7 @@ df1_after_comfil %>% write_rds("output/df1.rds", compress = "gz")
 
 df2 <- ef1 %>% 
   filter(str_detect(ef1$項目名,"入院の契機となった傷病名に対するICD10コード") & str_detect(ef1$データ,"J441"))
-        
+
 df2_comfil <- ef1 %>%
   filter((str_detect(ef1$項目名,"入院時併存症名に対するICD10コード") & str_detect(ef1$データ,"J12")) |
            (str_detect(ef1$項目名,"入院時併存症名に対するICD10コード") & str_detect(ef1$データ,"J13")) |
@@ -219,10 +219,10 @@ df <- df %>%
 cci <- df %>% 
   select(`患者ID`, dummy_id, `入院日`, starts_with("com")) %>% 
   pivot_longer(
-  cols = starts_with("com"),
-  names_to = "item",
-  values_to = "value"
-)
+    cols = starts_with("com"),
+    names_to = "item",
+    values_to = "value"
+  )
 
 charlson <- comorbidity::comorbidity(x = cci, id = "dummy_id", code = "value", map = "charlson_icd10_quan", assign0 = FALSE)
 charlson
@@ -297,7 +297,7 @@ drug_select <- function(.data){
     summarise(s = min(x), e = max(x))
   
   return(r)
-　}
+}
 
 drug_list <- emr_drug_data_filtered %>% 
   group_by(`患者ID`, `WHO-ATCコード`) %>% 
@@ -443,15 +443,15 @@ lab_combine <- function(name, newname){
     filter(`検査名` == name)
   
   indx1 <- neardate(df$`患者ID`, .data2$`患者ID`, df$`入院日`, .data2$`検査日`, 
-                   best="after")
+                    best="after")
   indx1 <- ifelse((.data2$`検査日`[indx1] - df$`入院日`) > 2, NA, indx1)
   indx2 <- neardate(df$`患者ID`, .data2$`患者ID`, df$`入院日`, .data2$`検査日`, 
                     best="prior")
   indx2 <- ifelse((df$`入院日` - .data2$`検査日`[indx2]) > 2, NA, indx2)
   indx3 <- ifelse(is.na(indx1), indx2, # none after, take before
-         ifelse(is.na(indx2), indx1, #none before
-                ifelse(abs(.data2$`検査日`[indx2]- df$`入院日`) <
-                         abs(.data2$`検査日`[indx1]- df$`入院日`), indx2, indx1)))
+                  ifelse(is.na(indx2), indx1, #none before
+                         ifelse(abs(.data2$`検査日`[indx2]- df$`入院日`) <
+                                  abs(.data2$`検査日`[indx1]- df$`入院日`), indx2, indx1)))
   df <<- df %>% cbind(.data2[indx3, "結果"]) %>% rename(!!newname := "結果")
 }
 
@@ -477,7 +477,7 @@ df %>% write_rds("output/df_ef1_drug_lab.rds", compress = "gz")
 
 # Procedure ---------------------------------------------------------------
 
-df <- read_rds("output/df_ef1_drug.rds")
+df <- read_rds("output/df_ef1_drug_lab.rds")
 claim_procedure_data %>% glimpse()
 procedure_code %>% glimpse()
 
@@ -499,7 +499,7 @@ procedure_select <- function(.data){
     group_by(procid) %>% 
     mutate(start = head(`対象日`, 1),
            end = tail(`対象日`, 1)
-           ) %>% 
+    ) %>% 
     slice(1)
 }
 
@@ -637,39 +637,45 @@ df <- df %>%
          last_follow = `観察期間終了日(EMR)`,
          last_death = `死亡の有無`,
          death_date = `死亡日`) %>% 
-  select(id, age, sex, adm_adl, cap_hap, spo2, ams, sbp, immunodef, crp, dev_place, adm_jcs, cci,
+  select(id, age, sex, adm_adl, cap_hap, spo2, ams, sbp, immunodef, dev_place, adm_jcs, cci_score,
+         com1, com2, com3, com4, com5, com6, com7, com8, com9, com10,
+         subs1, subs2, subs3, subs4, subs5,
+         wbc, bun, crp, eo, alb,
          abx, emp_abx, steroid, emp_steroid, base_steroid, tetra, anphe, betal, other_beta, st, macro, amino, quino, combi, others,
          emp_tetra, emp_anphe, emp_betal, emp_other_beta, emp_st, emp_macro, emp_amino, emp_quino, emp_combi, emp_others,
          antac, base_inhaler, vaso, diure, base_dm_drug, base_immuno, 
          intubation, oxy, emp_oxy, mecha_intu, dialysis,
          los, adm_date, last_follow, disc_date, death_date, disc_prognosis, death24h, last_death) %>% 
+  mutate(across(base_steroid:base_dm_drug, ~ as.numeric(.x))) %>% 
+  mutate(across(base_steroid:base_dm_drug, ~ replace_na(.x, 0))) %>%  
+  mutate(across(intubation:emp_oxy, ~ replace_na(.x, 0))) %>% 
   mutate(ams2 = if_else(adm_jcs == "0", "0", "1"),
          ams = if_else(ams == "9" | is.na(ams), ams2, ams),
          transfer24h = if_else(los == 0, 1, 0),
          inhosp_death = if_else((disc_prognosis == 6 | disc_prognosis == 7), 1, 0),
-         death30d = case_when(is.na(`death_date`) ~ "0",
-                              ymd(`death_date`) - ymd(`death_date`) < 30 ~ NA_character_,
-                              ymd(`death_date`) - ymd(`death_date`) >= 30 ~ "1")) %>% 
+         death30d = case_when(ymd(`death_date`) - ymd(`adm_date`) >= 30 ~ "1",
+                              is.na(`death_date`) ~ "0",
+                              ymd(`death_date`) - ymd(`adm_date`) < 30 ~ NA_character_)) %>% 
   mutate(spo2 = if_else(dev_place == "8" | dev_place == "9" | spo2 == "9", NA_character_, spo2),
          sbp = if_else(dev_place == "8" | dev_place == "9" | sbp == "9", NA_character_, sbp),
          immunodef = if_else(dev_place == "8" | dev_place == "9" | immunodef == "9", NA_character_, immunodef),
-         dev_plave = if_else(dev_place == "8" | dev_place == "9", NA_character_, dev_place)) %>% 
+         dev_place = if_else(dev_place == "8" | dev_place == "9", NA_character_, dev_place)) %>% 
   mutate(sex = factor(sex,
                       levels = c("1", "2"),
                       labels = c("Male", "Female")),
          spo2 = factor(spo2,
-                      levels = c("0", "1", "2"),
-                      labels = c("Normal", "FiO2 < 35%","FiO2 >= 35%")),
+                       levels = c("0", "1", "2"),
+                       labels = c("Normal", "FiO2 < 35%","FiO2 >= 35%")),
          ams = factor(ams,
                       levels = c("0", "1"),
                       labels = c("Normal", "Altered mental status")),
-         sbp = factor(spo2,
+         sbp = factor(sbp,
                       levels = c("0", "1"),
                       labels = c("Not", "Shock")),
-         immunodef = factor(spo2,
+         immunodef = factor(immunodef,
                             levels = c("0", "1"),
                             labels = c("Not", "Immunodeficiency")),
-         dev_place = factor(spo2,
+         dev_place = factor(dev_place,
                             levels = c("3", "5"),
                             labels = c("HAP", "CAP")),
          emp_steroid = factor(emp_steroid,
@@ -679,41 +685,41 @@ df <- df %>%
                           levels = c("0", "1"),
                           labels = c("Not", "Empirical abx")),
          inhosp_death = factor(inhosp_death,
-                              levels = c("0", "1"),
-                              labels = c("Not", "In-hospital death")),
+                               levels = c("0", "1"),
+                               labels = c("Not", "In-hospital death")),
          death30d = factor(death30d,
                            levels = c("0", "1"),
                            labels = c("Not", "30-day death")),
          emp_tetra = factor(emp_tetra,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Tetracyclines")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Tetracyclines")),
          emp_anphe = factor(emp_anphe,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Amphenicols")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Amphenicols")),
          emp_betal = factor(emp_betal,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Beta-lactum antibacterials, penicillins")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Beta-lactum antibacterials, penicillins")),
          emp_other_beta = factor(emp_other_beta,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Other beta-lactam antibacterials")),
+                                 levels = c("0", "1"),
+                                 labels = c("Not", "Other beta-lactam antibacterials")),
          emp_amino = factor(emp_amino,
                             levels = c("0", "1"),
                             labels = c("Not", "Aminoglycoside antibacterials")),
          emp_st = factor(emp_st,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Sulfamethoxazole and trimethoprim")),
+                         levels = c("0", "1"),
+                         labels = c("Not", "Sulfamethoxazole and trimethoprim")),
          emp_macro = factor(emp_macro,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Macrolide, lincosamides and streptogramins")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Macrolide, lincosamides and streptogramins")),
          emp_quino = factor(emp_quino,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Quinolone antibacterials")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Quinolone antibacterials")),
          emp_combi = factor(emp_combi,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Combinations of antibiotics")),
+                            levels = c("0", "1"),
+                            labels = c("Not", "Combinations of antibiotics")),
          emp_others = factor(emp_others,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Other antibacterials")),
+                             levels = c("0", "1"),
+                             labels = c("Not", "Other antibacterials")),
          vaso = factor(vaso,
                        levels = c("0", "1"),
                        labels = c("Not", "Vasopressors")),
@@ -727,13 +733,18 @@ df <- df %>%
                           levels = c("0", "1"),
                           labels = c("Not", "Oxygen use on admission")),
          base_dialysis = factor(dialysis,
-                          levels = c("0", "1"),
-                          labels = c("Not", "Dialysis"))
-         ) %>% 
+                                levels = c("0", "1"),
+                                labels = c("Not", "Dialysis"))
+  ) %>% 
   #mutate(across(cap_hap:dev_place, ~ as.numeric(.x))) %>% 
   #mutate(across(disc_prognosis:death24h, ~ as.numeric(.x))) %>% 
-  mutate(across(adm_date:death_date, ~ ymd(.x)))
-         
+  mutate(across(adm_date:death_date, ~ ymd(.x))) %>% 
+  mutate(across(wbc:alb, ~ as.numeric(.x))) %>% 
+  mutate(base_steroid = as.numeric(base_steroid),
+         death24h = as.numeric(death24h),
+  ) %>% 
+  mutate(eo_abs = wbc * eo /100)
+
 df %>% write_rds("output/df_ef1_drug_proc_base_cleaned.rds", compress = "gz")
 
 

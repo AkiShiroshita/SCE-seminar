@@ -1,0 +1,63 @@
+---
+output: 
+    stevetemplates::statement:
+    latex_engine: pdflatex
+geometry: margin=1in
+
+title: "RWD pneumonic COPD exacerbation"
+author: Akihiro Shiroshita
+affiliation: Division of Epidemiology, Department of Medicine, Vanderbilt University School of Medicine
+email: "akihiro.shiroshita@vanderbilt.edu"
+
+fontfamily: cochineal
+fontsize: 11pt
+---
+
+```{r set-up, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message = FALSE,
+                      fig.pos="t", fig.height=4, out.extra="")
+
+packages = c("devtools",
+             "usethis",
+             "here",
+             "readr",
+             "data.table",
+             "readxl",
+             "tidyverse",
+             "R.utils",
+             "tidylog",
+             "lubridate",
+             "comorbidity",
+             "psych",
+             "ggplot2",
+             "ggplotgui",
+             "ggthemes",
+             "arsenal",
+             "survival",
+             "scales",
+             "texreg",
+             "kableExtra")
+package.check <- lapply(packages, FUN = function(x){
+  if (!require(x, character.only = TRUE)){
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+getwd()
+rm(list=ls())
+
+df <- read_rds("output/df_ef1_drug_proc_base_cleaned.rds")
+
+df <- df %>% 
+  select(age, sex, adm_adl, cci_score, spo2, ams, sbp, immunodef, dev_place, emp_abx,
+         base_dialysis, inhospital_death, los, emp_steroid)
+  
+```
+
+# Multiple imputation       
+
+```{r}
+
+```
