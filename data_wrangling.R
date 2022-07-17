@@ -150,7 +150,7 @@ df2_after_comfil %>% write_rds("output/df2.rds", compress = "gz")
 df1 <- read_rds("output/df1.rds")
 df2 <- read_rds("output/df2.rds")
 
-df <- full_join(df1, df2, by = c("患者ID", "入院日"))　# match = 同一日入院
+df <- full_join(df1, df2, by = c("患者ID", "入院日"))
 
 select_dpc <- function(code, payload, name){
   data <- ef1 %>% 
@@ -175,7 +175,7 @@ select_dpc2 <- function(code, payload, serial, name){
                 values_from = `データ`,
                 values_fill = list(value = NA_character_)) 
   data <- data %>% rename(!!name := colnames(data)[3])
-  after <<- left_join(df, data, by = c("患者ID", "入院日"))
+  df <<- left_join(df, data, by = c("患者ID", "入院日"))
 }
 
 select_dpc("A000010", "1", "birth_date")  
