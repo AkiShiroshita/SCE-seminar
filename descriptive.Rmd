@@ -51,22 +51,22 @@ rm(list=ls())
 df <- read_rds("output/df_ef1_drug_proc_base_cleaned.rds")
 ```
 
-# Patient selection flow      
+## Patient selection  
 
 ```{r}
 df %>% summarise(n_observation = n(),
                  n_patients = length(unique(id)),
-                 n_death = sum(inhosp_death == 1),
+                 n_death = sum(inhosp_death == "In-hospital death"),
                  n_death24h = sum(death24h == 1),
                  n_loss24h = sum(transfer24h == 1),
                  n_death24h_transfer24h = sum(death24h == 1 & transfer24h == 1),
-                 n_daily_steroid = sum(base_steroid == 1),
-                 n_under_40 = sum(age < 40)) %>% 
+                 n_daily_steroid = sum(base_steroid == 1)) %>% 
   #mutate_all(~{format(., nsmall = 0, digits = 0)}) %>% 
   pivot_longer(everything()) %>% 
   rename(` ` = name, `Number` = value)
 ```
-### Exclude patients  
+
+### Exclude patients
 
 ```{r}
 df <- df %>% 
@@ -74,13 +74,13 @@ df <- df %>%
 df %>% write_rds("output/analysis_data.rds", compress = "gz")
 ```
 
-
 ### Treatment groups
+
 ```{r}
 df %>% group_by(emp_steroid) %>% 
   summarise(n_observation = n(),
             n_patients = length(unique(id)),
-            n_death = sum(inhosp_death == 1)) %>% 
+            n_death = sum(inhosp_death == "In-hospital death")) %>% 
   #mutate_at(vars(-emp_steroid), ~{format(., nsmall = 0, digits = 0)}) %>% 
   pivot_longer(cols = c(-emp_steroid),
                names_to = "name",
@@ -91,8 +91,7 @@ df %>% group_by(emp_steroid) %>%
   rename(` ` = name)
 ```
 
-# Overall characteristics  
-
+# Overall characteristics
 
 ```{r}
 labellist = list(age = "Age",
@@ -143,18 +142,15 @@ table_control <- tableby.control(
   total = FALSE
 )
 
-table1 <- summary(table1,
-                 text = TRUE,
-                 control = table_control,
-                 digits = 0,
-                 digits.pct =0)
+summary(table1,
+        text = TRUE,
+        control = table_control,
+        digits = 0,
+        digits.pct =0)
 ```
 
-```{r results="asis"}
-table1
-```
+# Characteristics by exposure
 
-# Characteristics by exposure  
 ```{r}
 table2 <- tableby(
   emp_steroid ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
@@ -164,11 +160,11 @@ table2 <- tableby(
   data = df
 )
 
-table2 <- summary(table2,
-                 text = TRUE,
-                 control = table_control,
-                 digits = 0,
-                 digits.pct =0)
+summary(table2,
+        text = TRUE,
+        control = table_control,
+        digits = 0,
+        digits.pct =0)
 ```
 
 
@@ -190,6 +186,3 @@ table3 <- summary(table2,
                  digits.pct =0)
 table3 %>% write.csv("table1.csv")
 ```
-
-
-

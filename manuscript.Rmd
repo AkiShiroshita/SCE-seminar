@@ -1,0 +1,315 @@
+---
+title: "Systemic coirticosteroid for pneumonic COPD exacerbation: Japanese nationwide database research"
+author: 
+  - Authors:
+  - Akihiro Shiroshita^[Division of Epidemiology, Department of Medicine, Vanderbilt University School of Medicine, Nashville, USA]
+  - Keisuke Anan^[Division of Respiratory Medicine, Saiseikai Kumamoto Hospital, Kumamoto, Japan]
+  - Yuki Kataoka^[Section of Clinical Epidemiology, Department of Community Medicine, Kyoto University Graduate School of Medicine, Kyoto, Japan]
+keywords: COPD; Emphysema; Pneumonic; Steroid
+fontfamily: Times New Roman 
+fontsize: 12pt        
+linestretch: 2        
+geometry: margin=1in  
+#papersize: letter    
+#lof: false           
+#lot: false            
+always_allow_html: true
+output:
+  word_document: 
+    keep_md: no
+    reference_docx: template_file.docx
+  pdf_document: 
+    keep_tex: no
+    toc: false
+    number_sections: false
+    extra_dependencies: ["dcolumn"]
+csl: the-new-england-journal-of-medicine.csl
+bibliography: references.bib
+---
+
+```{r set-up, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message = FALSE,
+                      fig.pos="t", fig.height=4, out.extra="")
+
+packages = c("devtools",
+             "usethis",
+             "here",
+             "readr",
+             "data.table",
+             "readxl",
+             "tidyverse",
+             "R.utils",
+             "tidylog",
+             "lubridate",
+             "comorbidity",
+             "psych",
+             "ggplot2",
+             "ggplotgui",
+             "ggthemes",
+             "arsenal",
+             "survival",
+             "scales",
+             "texreg",
+             "kableExtra")
+package.check <- lapply(packages, FUN = function(x){
+  if (!require(x, character.only = TRUE)){
+    install.packages(x, dependencies = TRUE)
+    library(x, character.only = TRUE)
+  }
+})
+
+getwd()
+rm(list=ls())
+
+df <- read_rds("output/df_ef1_drug_proc_base_cleaned.rds")
+```
+
+# **Corresponding author**
+
+Akihiro Shiroshita
+
+Division of Epidemiology, Department of Medicine, Vanderbilt University School of Medicine, Nashville, USA
+
+E-mail: akihirokun8\@gmail.com
+
+Telephone number: +81-80-3807-4960
+
+Fax number: +81-586-48-0055
+
+**Word count**
+
+Abstract: xx
+
+Text: xx
+
+# Abstract
+
+## Introduction
+
+text
+
+## Methods
+
+text
+
+## Results
+
+text
+
+## Conclusion
+
+text
+
+**Keywords**: COPD; Emphysema; Pneumonia; Steroid
+
+# Introduction
+
+Chronic obstructive pulmonary disease (COPD) exacerbation sometimes accompany with pneumonia, which is called pneumonic COPD exacerbation[@søgaard2016]. Pneumonic COPD exacerbation was reported higher mortality compared with non-pneumonic COPD exacerbation[@søgaard2016a]. Although antibiotics use is a mainstay of treatment both for COPD exacerbation and pneumonia, the role of systemic corticosteroid remains unclear[@shiroshita2020b]. Many previous randomized controlled trials (RCTs) about systemic corticosteroid for COPD exacerbation excluded patients with pneumonia[@walters2014]. On the other hand, previous RCTs about systemic corticosteroid for pneumonia did not included sufficient number of patients with COPD[@walters2014a]. Thud, evidence of systemic corticosteroid for pneumonic COPD exacerbation is scarce. Some observational studies evaluate the association between systemic corticosteroid and soft outcomes such as length of hospital stay and time-to-clinical-stability, which did not show any treatment benefit[@shiroshita2020c; @scholl2018].
+
+Generally, treatment effects on soft outcomes does not necessarily indicate those on hard ouctomes such as mortality[@shi2009]. Therefore, our study aimed to evaluate the association between systemic corticosteroid and mortality using large-scale database and draw a more valid conclusion about this topic.
+
+## Methods
+
+### Study design
+
+Our study was a retrospective cohort study using Japanese natiowide database. The database is maintained by Health, Clinic, and Education Information Evaluation Institute (HCEI, Kyoto, Japan) with support from Real World Data Co., Ltd (Kyoto Japan). In 2022, it contains the following anonymized patient data from 250 hospitals in Japan: patient demographic data, diagnoses, drug prescription, procedures, and laboratory results. The data source is electronic medical records at each hospital. The Institutional Review Board of Ichinomiyanishi Hospital approved the current study. Patient informed consent was waived because of the retrospective design. We report this article according to the Reporting of studies Conducted using Observational Routinely-collected Data Statement (Supplement Table 1)[@benchimol2015].
+
+### Patient selection
+
+The inclusion criteria were hospitalized patients with pneumonic COPD exacerbation who were aged ≥40 years. We used the following the modified version of validated patient selection algorithm: selecting patients who meet either criteria (1) admission precipitating the diagnosis of pneumonia (ICD-10 codes; J12, J13, J14, J15, J16, J18, J69, and P23) with comorbidities present at the time of admission for COPD (the 10th revision of the International Statistical Classification of Diseases and Related Health Problems [ICD-10] codes; J44.1 and J44.9) or (2) admission precipitating the diagnosis of COPD exacerbation (ICD-10 code; J44.1) with comorbidities present at the time of admission for pneumonia (ICD-10 code; J12, J13, J14, J15, J18, J69, and P23)[@shiroshita2020a]. Exclusion criteria were patients patients who died or were transferred to another hospital within 24 hours from admission, and daily systemic steroid users.
+
+### Data extraction
+
+We extracted the following patient information from the database: year of birth, date of admission, sex, activity of daily living on admission, mental status on admission, blood tests (white blood cell counts, blood eosinophil counts, blood urea nitrogen, albumin and C-reactive protein), medications (inhalers, immunosuppressants, antacids, systemic steroid, antibiotics, vasopressors, and diuretics) , procedures (oxygen use on admission, tracheal intubation, and dialysis), prognosis, date of inpatient discharge.
+
+### Exposure
+
+Exposure in this study was administration of systemic steroid. Systemic steroid use was defined as oral or parenteral administration of triamcinolone, dexamethasone, hydrocortisone, prednisolone or betamethasone on the day or next day of admission regardless of doses.
+
+### Outcomes
+
+The primary outcome was time-to-in-hospital-death. The secondary outcome was 30-day mortality and length of hospital stay, and number of patients who were newly administered insulin during hospitalization.
+
+### Covariates
+
+We used the following potential confounding factors as covariates: age, body mass index, previous hospitalization due to pneumonia or COPD exacerabtion within 90 days, Hugh-Johns classification, mental status on admission, oxygen use on admission, blood eosinophil count, blood urea nitrogen. In the primary analysis, we set the cut-off of age and activity of daily living as 70 years old and the median value, respectively. In the Super Learner, we used age and activity of daily living as continuous variables.
+
+### Statistical analysis
+
+As sensitivity analyses, we
+
+excluding patients with comorbidities of other respiratory diseases including asthma exacerbation, pneumothorax, heart failure, obstructive pneumonia, and empyema.
+
+## Results
+
+```{r}
+df_filtered <- df %>% 
+  filter(death24h != 1 & transfer24h != 1 & base_steroid != 1)
+df_filtered %>% write_rds("output/analysis_data.rds", compress = "gz")
+```
+
+### Descriptive analysis
+
+From the RWD database, `r df %>% nrow()` hospitalizations met the inclusion criteria and among them, `r df %>% filter((death24h == 1 | transfer24h == 1 | base_steroid == 1)) %>% nrow()` met the exclusion criteria (Figure 1). Finally, we included a total of `r df_filtered$id %>% unique() %>% length()` patients and `r df_filtered %>% nrow()` hospitalizations in the analyses. Table 1 summarize the patient characteristics. Systemic corticosteroid was administered in `r df_filtered %>% filter(emp_steroid == "Steroid group") %>% nrow()` (`r df_filtered %>% filter(emp_steroid == "Steroid group") %>% nrow()/df_filtered %>% nrow()`%) hospitalizations on the day or next day of admission. The in-hospital mortality and 30-day mortality were `r df_filtered %>% filter(inhosp_death == "In-hospital death") %>% nrow()` (`r df_filtered %>% filter(inhosp_death == "In-hospital death") %>% nrow()/df_filtered %>% nrow()`%) and `r df_filtered %>% filter(death30d == "30-day death") %>% nrow()` (`r df_filtered %>% filter(death30d == "30-day death") %>% nrow()/df_filtered %>% nrow()`%), respectively. The median length of hospital stay was `r df$los %>% median()` [IQR, `r quantile(df$los, 3/4)`-`r quantile(df$los, 1/4)`].  
+
+### Primary analysis  
+
+```
+child="mi_analysis.Rmd"}
+
+```
+
+
+### Secondary analysis
+
+## Discussions
+
+## Conclusion
+
+# Reference
+
+::: {#refs}
+:::
+
+```{r}
+df %>% summarise(n_observation = n(),
+                 n_patients = length(unique(id)),
+                 n_death = sum(inhosp_death == 1),
+                 n_death24h = sum(death24h == 1),
+                 n_loss24h = sum(transfer24h == 1),
+                 n_death24h_transfer24h = sum(death24h == 1 & transfer24h == 1),
+                 n_daily_steroid = sum(base_steroid == 1),
+                 n_under_40 = sum(age < 40)) %>% 
+  #mutate_all(~{format(., nsmall = 0, digits = 0)}) %>% 
+  pivot_longer(everything()) %>% 
+  rename(` ` = name, `Number` = value)
+```
+
+### Exclude patients
+
+```{r}
+df <- df %>% 
+  filter(death24h != 1 & transfer24h != 1 & base_steroid != 1)
+df %>% write_rds("output/analysis_data.rds", compress = "gz")
+```
+
+### Treatment groups
+
+```{r}
+df %>% group_by(emp_steroid) %>% 
+  summarise(n_observation = n(),
+            n_patients = length(unique(id)),
+            n_death = sum(inhosp_death == 1)) %>% 
+  #mutate_at(vars(-emp_steroid), ~{format(., nsmall = 0, digits = 0)}) %>% 
+  pivot_longer(cols = c(-emp_steroid),
+               names_to = "name",
+               values_to = "value") %>% 
+  pivot_wider(id_cols = name,
+              names_from = emp_steroid,
+              values_from = value) %>% 
+  rename(` ` = name)
+```
+
+# Overall characteristics
+
+```{r}
+labellist = list(age = "Age",
+                 sex = "Sex",
+                 adm_adl = "Activity of daily living",
+                 cci = "Charlson Comobidity Score",
+                 spo2 = "Low ogygen saturation",
+                 ams = "Mental status",
+                 sbp = "Systolic blood pressure",
+                 immunodef = "Immunodeficiency",
+                 dev_place = "Community-acquired or hospital acquired",
+                 emp_abx = "Empirical antibiotics",
+                 emp_steroid = "Empirical steroid",
+                 emp_tetra = "TETRACYCLINES",
+                 emp_anphe = "AMPHENICOLS",
+                 emp_betal = "BETA-LACTAM ANTIBACTERIALS, PENICILLINS",
+                 emp_other_beta = "OTHER BETA-LACTAM ANTIBACTERIALS",
+                 emp_st = "SULFONAMIDES AND TRIMETHOPRIM",
+                 emp_macro = "MACROLIDES, LINCOSAMIDES AND STREPTOGRAMINS",
+                 emp_amino = "AMINOGLYCOSIDE ANTIBACTERIALS",
+                 emp_quino = "QUINOLONE ANTIBACTERIALS",
+                 emp_combi = "COMBINATIONS OF ANTIBACTERIALS",
+                 emp_others = "OTHER ANTIBACTERIALS",
+                 vaso = "Vasopressors",
+                 diure = "Diuretics",
+                 intubation = "Tracheal intubation",
+                 emp_oxy = "Oxygen use on admission",
+                 base_dialysis = "Dialysis",
+                 inhosp_death = "In-hospital mortarity",
+                 death30d = "30-day mortality"
+                 )
+labelstatlist <- list(meansd = "Mean(SD)",
+                      range = "Range")
+table1 <- tableby(
+  ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
+    emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
+    emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
+    vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,
+  data = df
+)
+
+table_control <- tableby.control(
+  labelTranslations = labellist,
+  stats.labels = labelstatlist,
+  digits = 0,
+  digits.pct =0,
+  test = FALSE,
+  total = FALSE
+)
+
+table1 <- summary(table1,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+```
+
+```{r results="asis"}
+table1
+```
+
+# Characteristics by exposure
+
+```{r}
+table2 <- tableby(
+  emp_steroid ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
+    emp_abx + emp_steroid + emp_tetra + emp_anphe + emp_betal + emp_other_beta +
+    emp_st + emp_macro + emp_amino + emp_quino + emp_combi + emp_others +
+    vaso + diure * intubation + emp_oxy + base_dialysis + inhosp_death + death30d,
+  data = df
+)
+
+table2 <- summary(table2,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+```
+
+```{r results="asis"}
+table2
+```
+
+```{r eval=FALSE, include=FALSE}
+
+table_control <- tableby.control(
+  labelTranslations = labellist,
+  stats.labels = labelstatlist,
+  digits = 0,
+  digits.pct =0,
+  test = FALSE,
+  total = TRUE
+)
+
+table3 <- summary(table2,
+                 text = TRUE,
+                 control = table_control,
+                 digits = 0,
+                 digits.pct =0)
+table3 %>% write.csv("table1.csv")
+```
