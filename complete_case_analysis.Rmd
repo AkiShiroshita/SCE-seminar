@@ -64,12 +64,17 @@ df_cc <- df %>%
 
 # Complete case analysis  
 
+```{r}
+summary(tableby(emp_steroid ~ surv_obj, , data=df_cc))
+```
+
 ### Unadjusted K-M curve  
 
 ```{r}
 surv_obj <- Surv(df_cc$los, df_cc$inhosp_death)
 
-fit_surv <- survfit(surv_obj ~ emp_steroid, df_cc)
+fit_surv <- survfit(surv_obj ~ emp_steroid,
+                    data = df_cc)
 ggsurvplot(fit_surv)
 ```
 ### Cox regression  
@@ -93,35 +98,21 @@ trt_form <- "emp_steroid ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + 
 
 eb.out <- weightit(as.formula(trt_form),
                   data = df_cc,
-                  method = "ps",
-                  s.weights = NULL,
+                  method = "CBPS",
+                  over = TRUE,
                   estimand = "ATE")
+
+eb.out <- matchit(as.formula(trt_form),
+                  data = as.data.frame(df_cc),
+                  distance = "mahalanobis",
+                  exact = c("emp_abx"),
+                  replace = TRUE)
 
 #eb.out <- weightit(as.formula(trt_form),
 #                  data = df_cc,
 #                  method = "ebal",
 #                  moments = 3,
 #                  estimand = "ATE")
-```
-
-```{r}
-trt_form <- "emp_steroid ~ age + sex + adm_adl + cci_score + spo2 + ams + sbp + immunodef + dev_place +
-             emp_abx + base_dialysis"
-
-df_cc <- df_cc %>% 
-  mutate(sex = as.factor(sex),
-         spo2 = as.factor(spo2),
-         ams = as.factor(ams),
-         immunodef = as.factor(immunodef),
-         #dev_place = as.factor(dev_place),
-         emp_abx = as.factor(emp_abx),
-         base_dialysis = as.factor(base_dialysis),
-         inhosp_death = as.factor(inhosp_death))
-eb.out <- weightit(as.formula(trt_form),
-                  data = df_cc,
-                  method = "ebal",
-                  moments = 3,
-                  estimand = "ATE")
 ```
 
 ### Balance check  
@@ -142,50 +133,58 @@ love.plot(eb.out,
           theresholds = c(.10, .05))
 ```
 
-### Doubly 
+### Doubly robust
 
 ### Weighted cox regression  
 ```{r}
-surv_obj <- Surv(df_cc$los, df_cc$inhosp_death)
-fit_cc <- survfit(surv_obj ~ emp_steroid +  age + sex + cci_score + spo2 + ams + sbp + immunodef + dev_place +
-             emp_abx + base_dialysis, df_cc)
-```
+fit_cox_weighted <- coxph(surv_obj ~ emp_steroid + age + sex + adm_adl + cci_score + spo2 + ams + 
+                   sbp + immunodef + dev_place + emp_abx + base_dialysis,
+                   weights = eb.out$weights,
+                   data = df_cc,
+                   id = id)
 
-```{r}
-survdiff(surv_obj ~ emp_steroid, data=df_cc)
-```
-
-```{r}
-summary(tableby(emp_steroid ~ surv_obj, , data=df_cc))
-```
-
-```{r}
-ggsurvplot(fit_cc, censor = TRUE, conf.int = TRUE, risktable = TRUE)
-```
-
-```{r}
-fit_cc_cox <- coxph(outform, data = df_cc)
-summary(fit_cc_cox)
+summary(fit_cox_weighted)
 ```
 
 ### Bootstrap resampling  
+#### Standard error  
 
 ```{r}
 est_fun <- function(data, index){
-  out <- weithit(as.formula(trt_form),
-                  data = df_cc,
-                  method = "ebal",
-                  moments = 3,
+  
+  out <- weightit(as.formula(trt_form),
+                  data = data[index,],
+                  method = "CBPS",
+                  over = TRUE,
                   estimand = "ATE")
-  fit_cc <- 
-  return()
+  
+  fit_cox_weighted <- coxph(surv_obj ~ emp_steroid + age + sex + adm_adl + cci_score + spo2 + ams + 
+                   sbp + immunodef + dev_place + emp_abx + base_dialysis,
+                   weights = eb.out$weights,
+                   data = data[index,],
+                   id = id)
+  
+  return(fit_cox_weighted[["coefficients"]][["emp_steroid"]])
 }
 
-boot_out <- boot(est_fun, data = d, R = 1000)
+boot_out <- boot(est_fun,
+                 data = df_cc,
+                 R = 1000)
 
 boot_out
 ```
 
+#### Percentile confidence interval
+
 ```{r}
 boot.ci(boot_out, type = "perc")
+```
+
+### Weighted K-M curve  
+
+```{r}
+fit_surv_weighted <- survfit(surv_obj ~ emp_steroid,
+                             data = df_cc,
+                             weights = eb.out$weights)
+ggsurvplot(fit_surv_weighted)
 ```
